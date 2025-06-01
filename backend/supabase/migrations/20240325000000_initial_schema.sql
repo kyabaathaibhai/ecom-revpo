@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create custom types
 CREATE TYPE order_status AS ENUM ('pending', 'processing', 'shipped', 'delivered', 'cancelled');
+CREATE TYPE discount_type AS ENUM ('percentage', 'fixed');
 
 -- Enable RLS (Row Level Security)
 ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
@@ -29,6 +30,12 @@ CREATE TABLE public.orders (
     status order_status DEFAULT 'pending' NOT NULL,
     total_amount DECIMAL(10, 2) NOT NULL,
     shipping_address JSONB NOT NULL,
+    customer_details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    payment_status VARCHAR(50) DEFAULT 'pending',
+    payment_id VARCHAR(255),
+    payment_mode VARCHAR(50),
+    transaction_id VARCHAR(255),
+    payment_error TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -40,6 +47,9 @@ CREATE TABLE public.order_items (
     product_id UUID REFERENCES public.products(id) NOT NULL,
     quantity INTEGER NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    product_image_url TEXT,
+    product_description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -50,6 +60,23 @@ CREATE TABLE public.profiles (
     phone VARCHAR(50),
     address JSONB,
     avatar_url TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Coupons table
+CREATE TABLE public.coupons (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_type discount_type NOT NULL,
+    discount_value DECIMAL(10, 2) NOT NULL,
+    min_purchase_amount DECIMAL(10, 2) DEFAULT 0,
+    max_discount_amount DECIMAL(10, 2),
+    valid_from TIMESTAMP WITH TIME ZONE NOT NULL,
+    valid_until TIMESTAMP WITH TIME ZONE,
+    usage_limit INTEGER,
+    times_used INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -135,11 +162,18 @@ CREATE POLICY "Users can update own profile"
     TO authenticated
     USING (auth.uid() = id);
 
+-- Coupons are viewable by everyone
+CREATE POLICY "Coupons are viewable by everyone"
+    ON public.coupons FOR SELECT
+    TO public
+    USING (true);
+
 -- Enable RLS on all tables
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 
 -- Create function to handle user creation
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -154,4 +188,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Trigger for new user creation
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user(); 
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Add trigger for coupons updated_at
+CREATE TRIGGER update_coupons_updated_at
+    BEFORE UPDATE ON public.coupons
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column(); 

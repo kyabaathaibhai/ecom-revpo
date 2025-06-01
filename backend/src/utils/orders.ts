@@ -2,14 +2,25 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '../types/database.types';
 
 type Order = Database['public']['Tables']['orders']['Row'];
-type OrderItem = Database['public']['Tables']['order_items']['Row'];
-type Product = Database['public']['Tables']['products']['Row'];
 
 export async function createOrder(
   supabase: SupabaseClient<Database>,
   userId: string,
-  items: { productId: string; quantity: number }[],
-  shippingAddress: Record<string, any>
+  items: { 
+    productId: string;
+    quantity: number;
+    name: string;
+    image_url: string;
+    price: number;
+    description: string; 
+  }[],
+  shippingAddress: Record<string, any>,
+  customerDetails: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  }
 ) {
   const { data: products, error: productsError } = await supabase
     .from('products')
@@ -38,21 +49,33 @@ export async function createOrder(
   }, 0);
 
   // Start a transaction
-  const { data: order, error: orderError } = await supabase
+  const { data: insertResult, error: insertError } = await supabase
     .from('orders')
     .insert({
       user_id: userId,
       total_amount,
       shipping_address: shippingAddress,
-    })
-    .select()
-    .single();
+      customer_details: customerDetails
+    });
 
-  if (orderError || !order) {
-    throw new Error('Error creating order: ' + orderError?.message);
+  if (insertError) {
+    throw new Error('Error creating order: ' + insertError.message);
   }
 
-  // Create order items
+  // Fetch the created order
+  const { data: order, error: selectError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (selectError || !order) {
+    throw new Error('Error fetching created order: ' + selectError?.message);
+  }
+
+  // Create order items with additional information
   const orderItems = items.map((item) => {
     const product = products.find((p) => p.id === item.productId)!;
     return {
@@ -60,6 +83,9 @@ export async function createOrder(
       product_id: item.productId,
       quantity: item.quantity,
       unit_price: product.price,
+      product_name: item.name,
+      product_image_url: item.image_url,
+      product_description: item.description,
     };
   });
 
@@ -98,7 +124,18 @@ export async function getUserOrders(
 
   const { data: orders, error: ordersError, count } = await supabase
     .from('orders')
-    .select('*', { count: 'exact' })
+    .select(`
+      *,
+      order_items (
+        id,
+        product_id,
+        quantity,
+        unit_price,
+        product_name,
+        product_image_url,
+        product_description
+      )
+    `, { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(start, end);
@@ -121,7 +158,18 @@ export async function getOrderDetails(
 ) {
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('*')
+    .select(`
+      *,
+      order_items (
+        id,
+        product_id,
+        quantity,
+        unit_price,
+        product_name,
+        product_image_url,
+        product_description
+      )
+    `)
     .eq('id', orderId)
     .single();
 
@@ -129,27 +177,7 @@ export async function getOrderDetails(
     throw new Error('Error fetching order: ' + orderError?.message);
   }
 
-  const { data: items, error: itemsError } = await supabase
-    .from('order_items')
-    .select(`
-      *,
-      products (
-        id,
-        name,
-        description,
-        image_url
-      )
-    `)
-    .eq('order_id', orderId);
-
-  if (itemsError) {
-    throw new Error('Error fetching order items: ' + itemsError.message);
-  }
-
-  return {
-    ...order,
-    items: items || [],
-  };
+  return order;
 }
 
 export async function updateOrderStatus(

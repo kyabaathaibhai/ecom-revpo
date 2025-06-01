@@ -1,15 +1,13 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { useToast } from '../hooks/useToast';
 import {
   Box,
   Button,
   CardMedia,
   Typography,
   Container,
-  Grid,
   Chip,
   Divider,
   CircularProgress,
@@ -18,20 +16,17 @@ import {
   Paper,
 } from '@mui/material';
 
-import {
-  ArrowBack,
-  ShoppingCart,
-  LocalShipping,
-  Security,
-  Verified,
-} from '@mui/icons-material';
+import { ArrowBack, ShoppingCart } from '@mui/icons-material';
+import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getProduct } = useProducts();
   const { user } = useAuth();
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
+  const { showToast } = useToast();
   const [product, setProduct] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -55,11 +50,23 @@ const ProductDetails: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!user) {
-      navigate('/login', { state: { from: window.location.pathname } });
+      navigate('/signin', { state: { from: window.location.pathname } });
       return;
     }
     if (product) {
-      addToCart(product);
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image_url: product.image_url,
+        description: product.description,
+      });
+      showToast({
+        title: 'Success',
+        message: `${product.name} added to cart`,
+        type: 'success',
+      });
     }
   };
 
@@ -222,43 +229,7 @@ const ProductDetails: React.FC = () => {
           <Paper
             elevation={0}
             sx={{ bgcolor: '#f8f8f8', p: 3, borderRadius: 2 }}
-          >
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <LocalShipping color='primary' sx={{ fontSize: 40, mb: 1 }} />
-                  <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                    Free Shipping
-                  </Typography>
-                  <Typography variant='caption' color='text.secondary'>
-                    On orders over $50
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Security color='primary' sx={{ fontSize: 40, mb: 1 }} />
-                  <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                    Secure Payment
-                  </Typography>
-                  <Typography variant='caption' color='text.secondary'>
-                    100% secure checkout
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Verified color='primary' sx={{ fontSize: 40, mb: 1 }} />
-                  <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                    Quality Guarantee
-                  </Typography>
-                  <Typography variant='caption' color='text.secondary'>
-                    30-day return policy
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
+          ></Paper>
         </Box>
       </div>
     </Container>

@@ -11,8 +11,9 @@ import {
 } from '@mui/material';
 import { ShoppingCart } from '@mui/icons-material';
 import { Product } from '../lib/api/products';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { useToast } from '../hooks/useToast';
 
 interface ProductCardProps {
   product: Product;
@@ -21,7 +22,8 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
+  const { showToast } = useToast();
 
   const handleClick = () => {
     navigate(`/product/${product.id}`);
@@ -30,10 +32,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking the button
     if (!user) {
-      navigate('/login', { state: { from: window.location.pathname } });
+      navigate('/signin', { state: { from: window.location.pathname } });
       return;
     }
-    addToCart(product);
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image_url: product.image_url,
+      description: product.description,
+    });
+    showToast({
+      title: 'Success',
+      message: `${product.name} added to cart`,
+      type: 'success',
+    });
   };
 
   return (

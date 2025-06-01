@@ -47,8 +47,9 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
+        console.log(refreshError,"refreshError");
         // If refresh fails, redirect to login
-        window.location.href = '/login';
+        window.location.href = '/signin';
       }
     }
 

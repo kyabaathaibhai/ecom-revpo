@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard, User, MapPin, CheckCircle } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { User, MapPin, CheckCircle, Tag } from 'lucide-react';
+import { usePayment } from '../hooks/usePayment';
+import { createOrder } from '../lib/api/orders';
+import { useCart } from '../contexts/CartContext';
 
 interface FormData {
   firstName: string;
@@ -10,27 +11,33 @@ interface FormData {
   address: string;
   city: string;
   zipCode: string;
-  cardNumber: string;
-  cardName: string;
-  expiryDate: string;
-  cvv: string;
+  phone: string;
 }
 
 const CheckoutPage: React.FC = () => {
-  const { cartItems, getTotalPrice, clearCart } = useCart();
-  const navigate = useNavigate();
+  const {
+    items,
+    total,
+    getDiscountedTotal,
+    clearCart,
+    appliedCoupon,
+    applyCoupon,
+    removeCoupon,
+    couponError,
+  } = useCart();
+  const { initiatePayu } = usePayment();
+  const [couponCode, setCouponCode] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    address: '',
-    city: '',
-    zipCode: '',
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
-    cvv: '',
+    firstName: 'test',
+    lastName: 'test',
+    email: 'test@test.com',
+    address: 'test',
+    city: 'test',
+    zipCode: '123456',
+    phone: '1234567890',
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
@@ -46,12 +53,23 @@ const CheckoutPage: React.FC = () => {
       [name]: value,
     }));
 
-    // Clear error when typing
     if (errors[name as keyof FormData]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined,
       }));
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    setIsApplyingCoupon(true);
+    try {
+      await applyCoupon(couponCode.trim());
+      setCouponCode('');
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -69,51 +87,83 @@ const CheckoutPage: React.FC = () => {
     if (!formData.address) newErrors.address = 'Address is required';
     if (!formData.city) newErrors.city = 'City is required';
     if (!formData.zipCode) newErrors.zipCode = 'ZIP Code is required';
-
-    if (!formData.cardNumber) {
-      newErrors.cardNumber = 'Card number is required';
-    } else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ''))) {
-      newErrors.cardNumber = 'Card number must be 16 digits';
-    }
-
-    if (!formData.cardName) newErrors.cardName = 'Name on card is required';
-    if (!formData.expiryDate) {
-      newErrors.expiryDate = 'Expiry date is required';
-    } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(formData.expiryDate)) {
-      newErrors.expiryDate = 'Use format MM/YY';
-    }
-
-    if (!formData.cvv) {
-      newErrors.cvv = 'CVV is required';
-    } else if (!/^\d{3,4}$/.test(formData.cvv)) {
-      newErrors.cvv = 'CVV must be 3 or 4 digits';
-    }
+    if (!formData.phone) newErrors.address = 'Phone Number is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validateForm()) {
       setIsProcessing(true);
+      setOrderError(null);
 
-      // Simulate payment processing
-      setTimeout(() => {
+      try {
+        const orderData = {
+          items: items.map((item) => ({
+            productId: item.id,
+            quantity: item.quantity,
+            name: item.name,
+            image_url: item.image_url,
+            price: item.price,
+            description: item.description || '',
+          })),
+          shippingAddress: {
+            address: formData.address,
+            city: formData.city,
+            zipCode: formData.zipCode,
+          },
+          customerDetails: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+          },
+        };
+
+        const order = await createOrder(orderData);
+
+        // Initiate payment
+        const paymentData = {
+          orderId: order.id,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          customerEmail: formData.email,
+          amount: getDiscountedTotal(),
+          productInfo: 'Order Payment',
+          firstName: formData.firstName,
+          email: formData.email,
+          phone: formData.phone,
+        };
+
+        const payment = await initiatePayu(paymentData);
+        console.log({ payment }, 'payment');
+
         clearCart();
-        navigate('/confirmation');
-      }, 1500);
+      } catch (error) {
+        setOrderError(
+          error instanceof Error ? error.message : 'Failed to process order'
+        );
+        setIsProcessing(false);
+        console.error(error);
+      }
     }
   };
 
-  const totalPrice = getTotalPrice();
-  const shippingCost = totalPrice > 50 ? 0 : 5.99;
-  const totalWithShipping = totalPrice + shippingCost;
+  const subtotal = total;
+  const shippingCost = subtotal > 50 ? 0 : 5.99;
+  const finalTotal = getDiscountedTotal() + shippingCost;
 
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in'>
       <h1 className='text-2xl font-bold text-gray-900 mb-6'>Checkout</h1>
+
+      {orderError && (
+        <div className='mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative'>
+          {orderError}
+        </div>
+      )}
 
       <div className='lg:grid lg:grid-cols-12 lg:gap-8'>
         <div className='lg:col-span-7'>
@@ -130,7 +180,7 @@ const CheckoutPage: React.FC = () => {
                 </h2>
               </div>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
                 <div>
                   <label htmlFor='firstName' className='label'>
                     First Name
@@ -174,21 +224,44 @@ const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className='mt-4'>
-                <label htmlFor='email' className='label'>
-                  Email Address
-                </label>
-                <input
-                  type='email'
-                  id='email'
-                  name='email'
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`input ${errors.email ? 'border-red-500' : ''}`}
-                />
-                {errors.email && (
-                  <p className='text-red-500 text-xs mt-1'>{errors.email}</p>
-                )}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
+                <div>
+                  <label htmlFor='email' className='label'>
+                    Email Address
+                  </label>
+                  <input
+                    type='email'
+                    id='email'
+                    name='email'
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`input ${errors.email ? 'border-red-500' : ''}`}
+                  />
+                  {errors.email && (
+                    <p className='text-red-500 text-xs mt-1'>{errors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor='phone' className='label'>
+                    Phone Number
+                  </label>
+                  <input
+                    type='number'
+                    id='phone'
+                    name='phone'
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className={`input ${
+                      errors.lastName ? 'border-red-500' : ''
+                    }`}
+                  />
+                  {errors.lastName && (
+                    <p className='text-red-500 text-xs mt-1'>
+                      {errors.lastName}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -259,97 +332,6 @@ const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Information */}
-            <div>
-              <div className='flex items-center mb-4'>
-                <CreditCard className='mr-2 h-5 w-5 text-primary-600' />
-                <h2 className='text-lg font-semibold text-gray-800'>
-                  Payment Information
-                </h2>
-              </div>
-
-              <div>
-                <label htmlFor='cardNumber' className='label'>
-                  Card Number
-                </label>
-                <input
-                  type='text'
-                  id='cardNumber'
-                  name='cardNumber'
-                  placeholder='1234 5678 9012 3456'
-                  value={formData.cardNumber}
-                  onChange={handleChange}
-                  className={`input ${
-                    errors.cardNumber ? 'border-red-500' : ''
-                  }`}
-                />
-                {errors.cardNumber && (
-                  <p className='text-red-500 text-xs mt-1'>
-                    {errors.cardNumber}
-                  </p>
-                )}
-              </div>
-
-              <div className='mt-4'>
-                <label htmlFor='cardName' className='label'>
-                  Name on Card
-                </label>
-                <input
-                  type='text'
-                  id='cardName'
-                  name='cardName'
-                  value={formData.cardName}
-                  onChange={handleChange}
-                  className={`input ${errors.cardName ? 'border-red-500' : ''}`}
-                />
-                {errors.cardName && (
-                  <p className='text-red-500 text-xs mt-1'>{errors.cardName}</p>
-                )}
-              </div>
-
-              <div className='grid grid-cols-2 gap-4 mt-4'>
-                <div>
-                  <label htmlFor='expiryDate' className='label'>
-                    Expiry Date
-                  </label>
-                  <input
-                    type='text'
-                    id='expiryDate'
-                    name='expiryDate'
-                    placeholder='MM/YY'
-                    value={formData.expiryDate}
-                    onChange={handleChange}
-                    className={`input ${
-                      errors.expiryDate ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.expiryDate && (
-                    <p className='text-red-500 text-xs mt-1'>
-                      {errors.expiryDate}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor='cvv' className='label'>
-                    CVV
-                  </label>
-                  <input
-                    type='text'
-                    id='cvv'
-                    name='cvv'
-                    placeholder='123'
-                    value={formData.cvv}
-                    onChange={handleChange}
-                    className={`input ${errors.cvv ? 'border-red-500' : ''}`}
-                  />
-                  {errors.cvv && (
-                    <p className='text-red-500 text-xs mt-1'>{errors.cvv}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
             <button
               type='submit'
               className={`mt-8 w-full btn-primary py-3 flex items-center justify-center ${
@@ -395,7 +377,7 @@ const CheckoutPage: React.FC = () => {
             </h2>
 
             <div className='max-h-80 overflow-y-auto mb-4'>
-              {cartItems.map((item) => (
+              {items.map((item) => (
                 <div
                   key={item.id}
                   className='flex py-3 border-b border-gray-200 last:border-0'
@@ -422,11 +404,72 @@ const CheckoutPage: React.FC = () => {
               ))}
             </div>
 
+            {/* Coupon Section */}
+            <div className='mb-6 border-b border-gray-200 pb-6'>
+              <div className='flex items-center mb-2'>
+                <Tag className='mr-2 h-5 w-5 text-primary-600' />
+                <h3 className='text-sm font-medium text-gray-800'>
+                  Have a coupon?
+                </h3>
+              </div>
+
+              {appliedCoupon ? (
+                <div className='bg-green-50 p-3 rounded-md'>
+                  <div className='flex justify-between items-center'>
+                    <div>
+                      <p className='text-sm font-medium text-green-800'>
+                        {appliedCoupon.code}
+                      </p>
+                      <p className='text-xs text-green-600'>
+                        {appliedCoupon.discount}% discount applied
+                      </p>
+                    </div>
+                    <button
+                      onClick={removeCoupon}
+                      className='text-sm text-red-600 hover:text-red-800'
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className='flex space-x-2'>
+                  <input
+                    type='text'
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder='Enter coupon code'
+                    className='input flex-1'
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={isApplyingCoupon || !couponCode}
+                    className='btn-primary px-4'
+                  >
+                    {isApplyingCoupon ? 'Applying...' : 'Apply'}
+                  </button>
+                </div>
+              )}
+
+              {couponError && (
+                <p className='mt-2 text-sm text-red-600'>{couponError}</p>
+              )}
+            </div>
+
             <div className='space-y-3'>
               <div className='flex justify-between text-gray-600'>
                 <span>Subtotal</span>
-                <span>₹{totalPrice.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
+
+              {appliedCoupon && (
+                <div className='flex justify-between text-gray-600'>
+                  <span>Discount ({appliedCoupon.discount}%)</span>
+                  <span>
+                    -₹{((subtotal * appliedCoupon.discount) / 100).toFixed(2)}
+                  </span>
+                </div>
+              )}
 
               <div className='flex justify-between text-gray-600'>
                 <span>Shipping</span>
@@ -437,7 +480,7 @@ const CheckoutPage: React.FC = () => {
 
               <div className='pt-3 border-t border-gray-200 flex justify-between font-semibold text-lg'>
                 <span>Total</span>
-                <span>₹{totalWithShipping.toFixed(2)}</span>
+                <span>₹{finalTotal.toFixed(2)}</span>
               </div>
             </div>
 

@@ -1,18 +1,17 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../contexts/CartContext';
 import CartItem from '../components/CartItem';
 
 const CartPage: React.FC = () => {
-  const { cartItems, getTotalPrice } = useCart();
+  const { items, total } = useCart();
   const navigate = useNavigate();
 
-  const totalPrice = getTotalPrice();
-  const shippingCost = totalPrice > 50 ? 0 : 5.99;
-  const totalWithShipping = totalPrice + shippingCost;
+  const shippingCost = total > 50 ? 0 : 5.99;
+  const totalWithShipping = total + shippingCost;
 
-  if (cartItems.length === 0) {
+  if (items.length === 0) {
     return (
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in'>
         <div className='text-center py-12'>
@@ -41,7 +40,7 @@ const CartPage: React.FC = () => {
         <div className='lg:col-span-8'>
           <div className='bg-white rounded-lg shadow-soft overflow-hidden'>
             <ul className='divide-y divide-gray-200 px-6'>
-              {cartItems.map((item) => (
+              {items.map((item) => (
                 <li key={item.id}>
                   <CartItem item={item} />
                 </li>
@@ -80,7 +79,7 @@ const CartPage: React.FC = () => {
             <div className='space-y-3'>
               <div className='flex justify-between text-gray-600'>
                 <span>Subtotal</span>
-                <span>₹{totalPrice.toFixed(2)}</span>
+                <span>₹{total.toFixed(2)}</span>
               </div>
 
               <div className='flex justify-between text-gray-600'>

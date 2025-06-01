@@ -1,14 +1,24 @@
 import React from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
-import { CartItem as CartItemType } from '../context/CartContext';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../contexts/CartContext';
+import type { CartItem as CartItemType } from '../contexts/CartContext';
 
 interface CartItemProps {
   item: CartItemType;
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
-  const { updateQuantity, removeFromCart } = useCart();
+  const { updateQuantity, removeItem } = useCart();
+
+  const handleUpdateQuantity = (newQuantity: number) => {
+    if (newQuantity >= 0) {
+      updateQuantity(item.id, newQuantity);
+    }
+  };
+
+  const handleRemove = () => {
+    removeItem(item.id);
+  };
 
   return (
     <div className='flex items-center py-4 border-b border-gray-200 animate-fade-in'>
@@ -34,7 +44,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <div className='flex flex-1 items-end justify-between text-sm mt-2'>
           <div className='flex items-center'>
             <button
-              onClick={() => updateQuantity(Number(item.id), item.quantity - 1)}
+              onClick={() => handleUpdateQuantity(item.quantity - 1)}
               className='p-1 rounded-full hover:bg-gray-100 transition-colors'
               aria-label='Decrease quantity'
             >
@@ -44,7 +54,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             <span className='mx-3 font-medium'>{item.quantity}</span>
 
             <button
-              onClick={() => updateQuantity(Number(item.id), item.quantity + 1)}
+              onClick={() => handleUpdateQuantity(item.quantity + 1)}
               className='p-1 rounded-full hover:bg-gray-100 transition-colors'
               aria-label='Increase quantity'
             >
@@ -53,7 +63,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           </div>
 
           <button
-            onClick={() => removeFromCart(Number(item.id))}
+            onClick={handleRemove}
             className='text-gray-500 hover:text-red-500 transition-colors'
             aria-label='Remove item'
           >

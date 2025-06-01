@@ -33,7 +33,7 @@ export default function SignUpForm() {
 
       // If email confirmation is not required, redirect to login
       if (data.session) {
-        navigate('/login');
+        navigate('/signin');
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');

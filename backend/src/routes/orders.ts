@@ -47,7 +47,7 @@ router.post('/', asyncHandler(async (req, res) => {
     return;
   }
 
-  const { items, shippingAddress } = req.body;
+  const { items, shippingAddress,customerDetails,couponCode } = req.body;
   if (!items || !Array.isArray(items) || items.length === 0) {
     res.status(400).json({ message: 'Items array is required' });
     return;
@@ -58,7 +58,7 @@ router.post('/', asyncHandler(async (req, res) => {
     return;
   }
 
-  const order = await createOrder(supabase, userId, items, shippingAddress);
+  const order = await createOrder(supabase, userId, items, shippingAddress,customerDetails);
   res.status(201).json(order);
 }));
 
