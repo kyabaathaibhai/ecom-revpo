@@ -177,7 +177,7 @@ const HomePage: React.FC = () => {
           <div className='text-center'>
             <button
               onClick={fetchMore}
-              className='btn-primary text-lg px-8 py-4 group'
+              className='btn-primary text-lg px-8 py-4 group flex items-center'
             >
               Load More Products
               <ArrowRight className='w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300' />
