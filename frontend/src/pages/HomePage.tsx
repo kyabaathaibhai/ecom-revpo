@@ -69,7 +69,7 @@ const HomePage: React.FC = () => {
             <div className='flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-fade-in-up stagger-3'>
               <button 
                 onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-                className='btn-primary text-lg px-8 py-4'
+                className='btn-primary text-lg px-8 py-4 flex items-center'
               >
                 Explore Products
                 <ArrowRight className='w-5 h-5 ml-2' />
