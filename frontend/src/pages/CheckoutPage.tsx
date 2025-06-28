@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, MapPin, CheckCircle, Tag } from 'lucide-react';
+import { User, MapPin, CheckCircle, Tag, Shield, CreditCard, Truck } from 'lucide-react';
 import { usePayment } from '../hooks/usePayment';
 import { createOrder } from '../lib/api/orders';
 import { useCart } from '../contexts/CartContext';
@@ -87,7 +87,7 @@ const CheckoutPage: React.FC = () => {
     if (!formData.address) newErrors.address = 'Address is required';
     if (!formData.city) newErrors.city = 'City is required';
     if (!formData.zipCode) newErrors.zipCode = 'ZIP Code is required';
-    if (!formData.phone) newErrors.address = 'Phone Number is required';
+    if (!formData.phone) newErrors.phone = 'Phone Number is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -156,345 +156,381 @@ const CheckoutPage: React.FC = () => {
   const finalTotal = getDiscountedTotal() + shippingCost;
 
   return (
-    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in'>
-      <h1 className='text-2xl font-bold text-gray-900 mb-6'>Checkout</h1>
-
-      {orderError && (
-        <div className='mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative'>
-          {orderError}
+    <div className='min-h-screen bg-gradient-to-br from-gray-50 to-blue-50'>
+      <div className='container-max section-padding'>
+        <div className='mb-8 animate-fade-in-up'>
+          <h1 className='text-4xl font-bold text-gray-900 mb-2'>Checkout</h1>
+          <p className='text-gray-600'>Complete your order securely</p>
         </div>
-      )}
 
-      <div className='lg:grid lg:grid-cols-12 lg:gap-8'>
-        <div className='lg:col-span-7'>
-          <form
-            onSubmit={handleSubmit}
-            className='bg-white rounded-lg shadow-soft p-6'
-          >
-            {/* Customer Information */}
-            <div className='mb-8'>
-              <div className='flex items-center mb-4'>
-                <User className='mr-2 h-5 w-5 text-primary-600' />
-                <h2 className='text-lg font-semibold text-gray-800'>
-                  Customer Information
-                </h2>
-              </div>
-
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
-                <div>
-                  <label htmlFor='firstName' className='label'>
-                    First Name
-                  </label>
-                  <input
-                    type='text'
-                    id='firstName'
-                    name='firstName'
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={`input ${
-                      errors.firstName ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.firstName && (
-                    <p className='text-red-500 text-xs mt-1'>
-                      {errors.firstName}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor='lastName' className='label'>
-                    Last Name
-                  </label>
-                  <input
-                    type='text'
-                    id='lastName'
-                    name='lastName'
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={`input ${
-                      errors.lastName ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.lastName && (
-                    <p className='text-red-500 text-xs mt-1'>
-                      {errors.lastName}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
-                <div>
-                  <label htmlFor='email' className='label'>
-                    Email Address
-                  </label>
-                  <input
-                    type='email'
-                    id='email'
-                    name='email'
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`input ${errors.email ? 'border-red-500' : ''}`}
-                  />
-                  {errors.email && (
-                    <p className='text-red-500 text-xs mt-1'>{errors.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor='phone' className='label'>
-                    Phone Number
-                  </label>
-                  <input
-                    type='number'
-                    id='phone'
-                    name='phone'
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className={`input ${
-                      errors.lastName ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.lastName && (
-                    <p className='text-red-500 text-xs mt-1'>
-                      {errors.lastName}
-                    </p>
-                  )}
-                </div>
-              </div>
+        {orderError && (
+          <div className='mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl animate-fade-in-up'>
+            <div className='flex items-center'>
+              <CheckCircle className='w-5 h-5 mr-3' />
+              {orderError}
             </div>
+          </div>
+        )}
 
-            {/* Shipping Information */}
-            <div className='mb-8'>
-              <div className='flex items-center mb-4'>
-                <MapPin className='mr-2 h-5 w-5 text-primary-600' />
-                <h2 className='text-lg font-semibold text-gray-800'>
-                  Shipping Address
-                </h2>
+        <div className='lg:grid lg:grid-cols-12 lg:gap-12'>
+          {/* Form Section */}
+          <div className='lg:col-span-7 mb-8 lg:mb-0'>
+            <form onSubmit={handleSubmit} className='card p-8 animate-fade-in-up stagger-1'>
+              {/* Customer Information */}
+              <div className='mb-10'>
+                <div className='flex items-center mb-6'>
+                  <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mr-4'>
+                    <User className='w-5 h-5 text-white' />
+                  </div>
+                  <h2 className='text-2xl font-bold text-gray-900'>
+                    Customer Information
+                  </h2>
+                </div>
+
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                  <div>
+                    <label htmlFor='firstName' className='label'>
+                      First Name
+                    </label>
+                    <input
+                      type='text'
+                      id='firstName'
+                      name='firstName'
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className={`input ${
+                        errors.firstName ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                      }`}
+                      placeholder='Enter your first name'
+                    />
+                    {errors.firstName && (
+                      <p className='text-red-500 text-sm mt-2 flex items-center'>
+                        <CheckCircle className='w-4 h-4 mr-1' />
+                        {errors.firstName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor='lastName' className='label'>
+                      Last Name
+                    </label>
+                    <input
+                      type='text'
+                      id='lastName'
+                      name='lastName'
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className={`input ${
+                        errors.lastName ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                      }`}
+                      placeholder='Enter your last name'
+                    />
+                    {errors.lastName && (
+                      <p className='text-red-500 text-sm mt-2 flex items-center'>
+                        <CheckCircle className='w-4 h-4 mr-1' />
+                        {errors.lastName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor='email' className='label'>
+                      Email Address
+                    </label>
+                    <input
+                      type='email'
+                      id='email'
+                      name='email'
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`input ${
+                        errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                      }`}
+                      placeholder='Enter your email'
+                    />
+                    {errors.email && (
+                      <p className='text-red-500 text-sm mt-2 flex items-center'>
+                        <CheckCircle className='w-4 h-4 mr-1' />
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor='phone' className='label'>
+                      Phone Number
+                    </label>
+                    <input
+                      type='tel'
+                      id='phone'
+                      name='phone'
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className={`input ${
+                        errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                      }`}
+                      placeholder='Enter your phone number'
+                    />
+                    {errors.phone && (
+                      <p className='text-red-500 text-sm mt-2 flex items-center'>
+                        <CheckCircle className='w-4 h-4 mr-1' />
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label htmlFor='address' className='label'>
-                  Address
-                </label>
-                <input
-                  type='text'
-                  id='address'
-                  name='address'
-                  value={formData.address}
-                  onChange={handleChange}
-                  className={`input ${errors.address ? 'border-red-500' : ''}`}
-                />
-                {errors.address && (
-                  <p className='text-red-500 text-xs mt-1'>{errors.address}</p>
+              {/* Shipping Information */}
+              <div className='mb-10'>
+                <div className='flex items-center mb-6'>
+                  <div className='w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-4'>
+                    <MapPin className='w-5 h-5 text-white' />
+                  </div>
+                  <h2 className='text-2xl font-bold text-gray-900'>
+                    Shipping Address
+                  </h2>
+                </div>
+
+                <div className='space-y-6'>
+                  <div>
+                    <label htmlFor='address' className='label'>
+                      Street Address
+                    </label>
+                    <input
+                      type='text'
+                      id='address'
+                      name='address'
+                      value={formData.address}
+                      onChange={handleChange}
+                      className={`input ${
+                        errors.address ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                      }`}
+                      placeholder='Enter your street address'
+                    />
+                    {errors.address && (
+                      <p className='text-red-500 text-sm mt-2 flex items-center'>
+                        <CheckCircle className='w-4 h-4 mr-1' />
+                        {errors.address}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div>
+                      <label htmlFor='city' className='label'>
+                        City
+                      </label>
+                      <input
+                        type='text'
+                        id='city'
+                        name='city'
+                        value={formData.city}
+                        onChange={handleChange}
+                        className={`input ${
+                          errors.city ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        }`}
+                        placeholder='Enter your city'
+                      />
+                      {errors.city && (
+                        <p className='text-red-500 text-sm mt-2 flex items-center'>
+                          <CheckCircle className='w-4 h-4 mr-1' />
+                          {errors.city}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor='zipCode' className='label'>
+                        ZIP Code
+                      </label>
+                      <input
+                        type='text'
+                        id='zipCode'
+                        name='zipCode'
+                        value={formData.zipCode}
+                        onChange={handleChange}
+                        className={`input ${
+                          errors.zipCode ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                        }`}
+                        placeholder='Enter ZIP code'
+                      />
+                      {errors.zipCode && (
+                        <p className='text-red-500 text-sm mt-2 flex items-center'>
+                          <CheckCircle className='w-4 h-4 mr-1' />
+                          {errors.zipCode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type='submit'
+                className={`w-full py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center ${
+                  isProcessing
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'btn-primary'
+                }`}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <div className='w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin mr-3'></div>
+                    Processing Payment...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className='w-6 h-6 mr-3' />
+                    Complete Order
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Order Summary */}
+          <div className='lg:col-span-5'>
+            <div className='card p-8 animate-fade-in-up stagger-2 sticky top-24'>
+              <h2 className='text-2xl font-bold text-gray-900 mb-6'>
+                Order Summary
+              </h2>
+
+              {/* Order Items */}
+              <div className='max-h-80 overflow-y-auto mb-6 space-y-4'>
+                {items.map((item) => (
+                  <div key={item.id} className='flex items-center py-3 border-b border-gray-100 last:border-0'>
+                    <div className='h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100'>
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className='h-full w-full object-cover'
+                      />
+                    </div>
+                    <div className='ml-4 flex-1'>
+                      <h3 className='text-sm font-semibold text-gray-900 line-clamp-1'>
+                        {item.name}
+                      </h3>
+                      <p className='text-sm text-gray-600'>
+                        ₹{item.price.toFixed(2)} × {item.quantity}
+                      </p>
+                    </div>
+                    <p className='text-sm font-bold text-gray-900'>
+                      ₹{(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Coupon Section */}
+              <div className='mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100'>
+                <div className='flex items-center mb-4'>
+                  <Tag className='w-5 h-5 text-blue-600 mr-2' />
+                  <h3 className='text-lg font-semibold text-gray-900'>
+                    Promo Code
+                  </h3>
+                </div>
+
+                {appliedCoupon ? (
+                  <div className='bg-green-50 border border-green-200 p-4 rounded-xl'>
+                    <div className='flex justify-between items-center'>
+                      <div>
+                        <p className='text-sm font-semibold text-green-800'>
+                          {appliedCoupon.code}
+                        </p>
+                        <p className='text-xs text-green-600'>
+                          {appliedCoupon.discount}% discount applied
+                        </p>
+                      </div>
+                      <button
+                        onClick={removeCoupon}
+                        className='text-sm text-red-600 hover:text-red-800 font-semibold'
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className='flex space-x-3'>
+                    <input
+                      type='text'
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder='Enter promo code'
+                      className='input flex-1'
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponCode}
+                      className='btn-secondary px-6'
+                    >
+                      {isApplyingCoupon ? 'Applying...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+
+                {couponError && (
+                  <p className='mt-3 text-sm text-red-600 flex items-center'>
+                    <CheckCircle className='w-4 h-4 mr-1' />
+                    {couponError}
+                  </p>
                 )}
               </div>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
-                <div>
-                  <label htmlFor='city' className='label'>
-                    City
-                  </label>
-                  <input
-                    type='text'
-                    id='city'
-                    name='city'
-                    value={formData.city}
-                    onChange={handleChange}
-                    className={`input ${errors.city ? 'border-red-500' : ''}`}
-                  />
-                  {errors.city && (
-                    <p className='text-red-500 text-xs mt-1'>{errors.city}</p>
-                  )}
+              {/* Price Breakdown */}
+              <div className='space-y-4 mb-8'>
+                <div className='flex justify-between text-gray-700'>
+                  <span>Subtotal</span>
+                  <span className='font-semibold'>₹{subtotal.toFixed(2)}</span>
                 </div>
 
-                <div>
-                  <label htmlFor='zipCode' className='label'>
-                    ZIP Code
-                  </label>
-                  <input
-                    type='text'
-                    id='zipCode'
-                    name='zipCode'
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    className={`input ${
-                      errors.zipCode ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.zipCode && (
-                    <p className='text-red-500 text-xs mt-1'>
-                      {errors.zipCode}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type='submit'
-              className={`mt-8 w-full btn-primary py-3 flex items-center justify-center ${
-                isProcessing ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <svg
-                    className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <circle
-                      className='opacity-25'
-                      cx='12'
-                      cy='12'
-                      r='10'
-                      stroke='currentColor'
-                      strokeWidth='4'
-                    ></circle>
-                    <path
-                      className='opacity-75'
-                      fill='currentColor'
-                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                    ></path>
-                  </svg>
-                  Processing Payment...
-                </>
-              ) : (
-                <>Complete Order</>
-              )}
-            </button>
-          </form>
-        </div>
-
-        <div className='mt-8 lg:mt-0 lg:col-span-5'>
-          <div className='bg-white rounded-lg shadow-soft p-6 animate-slide-up'>
-            <h2 className='text-lg font-semibold text-gray-800 mb-4'>
-              Order Summary
-            </h2>
-
-            <div className='max-h-80 overflow-y-auto mb-4'>
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className='flex py-3 border-b border-gray-200 last:border-0'
-                >
-                  <div className='h-16 w-16 flex-shrink-0 overflow-hidden rounded-md'>
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className='h-full w-full object-cover object-center'
-                    />
+                {appliedCoupon && (
+                  <div className='flex justify-between text-green-600'>
+                    <span>Discount ({appliedCoupon.discount}%)</span>
+                    <span className='font-semibold'>
+                      -₹{((subtotal * appliedCoupon.discount) / 100).toFixed(2)}
+                    </span>
                   </div>
-                  <div className='ml-4 flex-1'>
-                    <h3 className='text-sm font-medium text-gray-800'>
-                      {item.name}
-                    </h3>
-                    <p className='mt-1 text-sm text-gray-600'>
-                      {item.price.toFixed(2)} x {item.quantity}
-                    </p>
-                  </div>
-                  <p className='text-sm font-medium text-gray-800'>
-                    ₹{(item.price * item.quantity).toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
+                )}
 
-            {/* Coupon Section */}
-            <div className='mb-6 border-b border-gray-200 pb-6'>
-              <div className='flex items-center mb-2'>
-                <Tag className='mr-2 h-5 w-5 text-primary-600' />
-                <h3 className='text-sm font-medium text-gray-800'>
-                  Have a coupon?
-                </h3>
-              </div>
-
-              {appliedCoupon ? (
-                <div className='bg-green-50 p-3 rounded-md'>
-                  <div className='flex justify-between items-center'>
-                    <div>
-                      <p className='text-sm font-medium text-green-800'>
-                        {appliedCoupon.code}
-                      </p>
-                      <p className='text-xs text-green-600'>
-                        {appliedCoupon.discount}% discount applied
-                      </p>
-                    </div>
-                    <button
-                      onClick={removeCoupon}
-                      className='text-sm text-red-600 hover:text-red-800'
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className='flex space-x-2'>
-                  <input
-                    type='text'
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder='Enter coupon code'
-                    className='input flex-1'
-                  />
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={isApplyingCoupon || !couponCode}
-                    className='btn-primary px-4'
-                  >
-                    {isApplyingCoupon ? 'Applying...' : 'Apply'}
-                  </button>
-                </div>
-              )}
-
-              {couponError && (
-                <p className='mt-2 text-sm text-red-600'>{couponError}</p>
-              )}
-            </div>
-
-            <div className='space-y-3'>
-              <div className='flex justify-between text-gray-600'>
-                <span>Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
-              </div>
-
-              {appliedCoupon && (
-                <div className='flex justify-between text-gray-600'>
-                  <span>Discount ({appliedCoupon.discount}%)</span>
-                  <span>
-                    -₹{((subtotal * appliedCoupon.discount) / 100).toFixed(2)}
+                <div className='flex justify-between text-gray-700'>
+                  <span className='flex items-center'>
+                    <Truck className='w-4 h-4 mr-2' />
+                    Shipping
+                  </span>
+                  <span className='font-semibold'>
+                    {shippingCost === 0 ? (
+                      <span className='text-green-600'>Free</span>
+                    ) : (
+                      `₹${shippingCost.toFixed(2)}`
+                    )}
                   </span>
                 </div>
-              )}
 
-              <div className='flex justify-between text-gray-600'>
-                <span>Shipping</span>
-                <span>
-                  {shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}
-                </span>
+                <hr className='border-gray-200' />
+
+                <div className='flex justify-between text-2xl font-bold text-gray-900'>
+                  <span>Total</span>
+                  <span className='gradient-text'>₹{finalTotal.toFixed(2)}</span>
+                </div>
               </div>
 
-              <div className='pt-3 border-t border-gray-200 flex justify-between font-semibold text-lg'>
-                <span>Total</span>
-                <span>₹{finalTotal.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div className='mt-6 bg-gray-50 p-4 rounded-md border border-gray-200'>
-              <div className='flex items-start'>
-                <CheckCircle className='h-5 w-5 text-secondary-500 mr-2 mt-0.5' />
-                <div>
-                  <p className='text-sm font-medium text-gray-800'>
-                    Secure Checkout
-                  </p>
-                  <p className='text-xs text-gray-600 mt-1'>
-                    Your payment information is processed securely. We do not
-                    store credit card details.
-                  </p>
+              {/* Security Badge */}
+              <div className='bg-gray-50 p-6 rounded-2xl border border-gray-200'>
+                <div className='flex items-start'>
+                  <Shield className='w-6 h-6 text-green-500 mr-3 mt-1' />
+                  <div>
+                    <p className='text-sm font-semibold text-gray-900 mb-1'>
+                      Secure Checkout
+                    </p>
+                    <p className='text-xs text-gray-600 leading-relaxed'>
+                      Your payment information is processed securely with 256-bit SSL encryption. 
+                      We never store your credit card details.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
