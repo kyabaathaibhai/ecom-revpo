@@ -1,5 +1,5 @@
 import React from 'react';
-import { Minus, Plus, Trash2, Heart } from 'lucide-react';
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import type { CartItem as CartItemType } from '../contexts/CartContext';
 
@@ -21,89 +21,54 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   };
 
   return (
-    <div className='flex items-center py-6 border-b border-gray-100 last:border-b-0 animate-fade-in-up hover:bg-gray-50/50 transition-colors duration-300 rounded-xl px-4'>
-      <div className='h-28 w-28 flex-shrink-0 overflow-hidden rounded-2xl shadow-lg'>
+    <div className='flex items-center py-4 border-b border-gray-200 animate-fade-in'>
+      <div className='h-24 w-24 flex-shrink-0 overflow-hidden rounded-md'>
         <img
           src={item.image_url}
           alt={item.name}
-          className='h-full w-full object-cover object-center hover:scale-110 transition-transform duration-300'
+          className='h-full w-full object-cover object-center'
         />
       </div>
 
-      <div className='ml-6 flex flex-1 flex-col'>
+      <div className='ml-4 flex flex-1 flex-col'>
         <div>
-          <div className='flex justify-between text-base font-semibold text-gray-900'>
-            <h3 className='text-lg hover:text-blue-600 transition-colors cursor-pointer'>
-              {item.name}
-            </h3>
-            <p className='ml-4 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
-              ₹{(item.price * item.quantity).toLocaleString()}
-            </p>
+          <div className='flex justify-between text-base font-medium text-gray-800'>
+            <h3>{item.name}</h3>
+            <p className='ml-4'>₹{(item.price * item.quantity).toFixed(2)}</p>
           </div>
-          <p className='mt-2 text-sm text-gray-600 line-clamp-2 leading-relaxed'>
+          <p className='mt-1 text-sm text-gray-500 line-clamp-1'>
             {item.description}
           </p>
-          <div className='mt-2 flex items-center space-x-2'>
-            <span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium'>
-              Premium Quality
-            </span>
-            <span className='text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium'>
-              In Stock
-            </span>
-          </div>
         </div>
 
-        <div className='flex flex-1 items-end justify-between text-sm mt-4'>
-          <div className='flex items-center space-x-4'>
-            {/* Quantity Controls */}
-            <div className='flex items-center bg-gray-100 rounded-xl p-1'>
-              <button
-                onClick={() => handleUpdateQuantity(item.quantity - 1)}
-                className='p-2 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200 text-gray-600 hover:text-blue-600'
-                aria-label='Decrease quantity'
-              >
-                <Minus size={16} />
-              </button>
-
-              <span className='mx-4 font-bold text-lg min-w-[2rem] text-center'>
-                {item.quantity}
-              </span>
-
-              <button
-                onClick={() => handleUpdateQuantity(item.quantity + 1)}
-                className='p-2 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200 text-gray-600 hover:text-blue-600'
-                aria-label='Increase quantity'
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-
-            {/* Unit Price */}
-            <div className='text-sm text-gray-500'>
-              <span className='font-medium'>₹{item.price.toLocaleString()}</span> each
-            </div>
-          </div>
-
-          <div className='flex items-center space-x-3'>
-            {/* Move to Wishlist */}
+        <div className='flex flex-1 items-end justify-between text-sm mt-2'>
+          <div className='flex items-center'>
             <button
-              className='flex items-center text-gray-500 hover:text-red-500 transition-colors duration-200 text-sm font-medium'
-              aria-label='Move to wishlist'
+              onClick={() => handleUpdateQuantity(item.quantity - 1)}
+              className='p-1 rounded-full hover:bg-gray-100 transition-colors'
+              aria-label='Decrease quantity'
             >
-              <Heart size={16} className='mr-1' />
-              Save for later
+              <Minus size={16} />
             </button>
 
-            {/* Remove Button */}
+            <span className='mx-3 font-medium'>{item.quantity}</span>
+
             <button
-              onClick={handleRemove}
-              className='flex items-center text-gray-500 hover:text-red-500 transition-colors duration-200 text-sm font-medium group'
-              aria-label='Remove item'
+              onClick={() => handleUpdateQuantity(item.quantity + 1)}
+              className='p-1 rounded-full hover:bg-gray-100 transition-colors'
+              aria-label='Increase quantity'
             >
-              <Trash2 size={16} className='mr-1 group-hover:scale-110 transition-transform' />
-              Remove
+              <Plus size={16} />
             </button>
           </div>
+
+          <button
+            onClick={handleRemove}
+            className='text-gray-500 hover:text-red-500 transition-colors'
+            aria-label='Remove item'
+          >
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
     </div>
