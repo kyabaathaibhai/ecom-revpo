@@ -3,7 +3,9 @@ import { supabase } from '../supabaseClient';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  // baseURL: 'http://localhost:5001/api',
+  baseURL: 'http://185.131.54.93:5001/api',
+  
   headers: {
     'Content-Type': 'application/json',
   },
