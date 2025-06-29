@@ -23,10 +23,10 @@ const CartPage: React.FC = () => {
               Your cart is empty
             </h2>
             <p className='text-xl text-gray-600 mb-8 max-w-md mx-auto'>
-              Discover amazing biometric devices and start building your security solution.
+              Discover amazing biometric devices and start building your
+              security solution.
             </p>
             <Link to='/' className='btn-primary text-lg px-8 py-4'>
-              <Sparkles className='w-5 h-5 mr-2' />
               Start Shopping
             </Link>
           </div>
@@ -53,9 +53,15 @@ const CartPage: React.FC = () => {
             <div className='card p-6 animate-fade-in-up stagger-1'>
               <div className='space-y-6'>
                 {items.map((item, index) => (
-                  <div key={item.id} className='animate-fade-in-up' style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div
+                    key={item.id}
+                    className='animate-fade-in-up'
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                     <CartItem item={item} />
-                    {index < items.length - 1 && <hr className='border-gray-200' />}
+                    {index < items.length - 1 && (
+                      <hr className='border-gray-200' />
+                    )}
                   </div>
                 ))}
               </div>
@@ -134,14 +140,16 @@ const CartPage: React.FC = () => {
 
                 <div className='flex justify-between text-xl font-bold text-gray-900'>
                   <span>Total</span>
-                  <span className='gradient-text'>₹{totalWithShipping.toFixed(2)}</span>
+                  <span className='gradient-text'>
+                    ₹{totalWithShipping.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               {/* Checkout Button */}
               <button
                 onClick={() => navigate('/checkout')}
-                className='w-full btn-primary text-lg py-4 group'
+                className='w-full btn-primary text-lg py-4 group flex items-center '
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className='w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300' />
@@ -150,8 +158,16 @@ const CartPage: React.FC = () => {
               {/* Security Badge */}
               <div className='mt-6 text-center'>
                 <div className='inline-flex items-center px-4 py-2 bg-gray-50 rounded-full text-sm text-gray-600'>
-                  <svg className='w-4 h-4 mr-2 text-green-500' fill='currentColor' viewBox='0 0 20 20'>
-                    <path fillRule='evenodd' d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z' clipRule='evenodd' />
+                  <svg
+                    className='w-4 h-4 mr-2 text-green-500'
+                    fill='currentColor'
+                    viewBox='0 0 20 20'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
+                      clipRule='evenodd'
+                    />
                   </svg>
                   Secure checkout
                 </div>
